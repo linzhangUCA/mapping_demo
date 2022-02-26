@@ -1,7 +1,12 @@
 from ament_index_python.packages import get_package_share_path
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    ExecuteProcess,
+)
 from launch.conditions import UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -11,6 +16,7 @@ def generate_launch_description():
     urdf_package_path = get_package_share_path("urdf_demo")
     gazebo_package_path = get_package_share_path("gazebo_demo")
     mapping_package_path = get_package_share_path("mapping_demo")
+    slam_toolbox_package_path = get_package_share_path("slam_toolbox")
     default_model_path = urdf_package_path / "urdf/bot.urdf.xacro"
     default_rviz_config_path = urdf_package_path / "rviz/bot.rviz"
     world_path = gazebo_package_path / "worlds/demo_world.sdf"
@@ -106,6 +112,12 @@ def generate_launch_description():
         ],
     )
 
+    launch_slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            str(slam_toolbox_package_path / "launch/online_async_launch.py")
+        )
+    )
+
     return LaunchDescription(
         [
             gui_arg,
@@ -117,6 +129,7 @@ def generate_launch_description():
             spawn_entity,
             robot_state_publisher_node,
             robot_localization_node,
+            launch_slam,
             rviz_node,
         ]
     )
